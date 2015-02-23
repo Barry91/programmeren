@@ -94,7 +94,7 @@ aside .dice img {
         font-size: 0.9em;
         background: #789f84;
         color: #fff;
-        height: 100px;
+        height: 155px;
         margin: 0 0 0 10px;
         text-align: left
     }
@@ -108,6 +108,22 @@ aside .dice img {
         width: 530px;
         overflow:hidden;
     }
+
+    aside .rules input {
+        width: 50px;
+        text-align: center;
+    }
+
+    aside .rules a {
+        background: #da3c3f;
+        color: #fff;
+        border-radius: 3px;
+        padding: 10px;
+        text-decoration: none;
+        float: right;
+        font-weight: bold;
+    }
+
         dt, dd {
             float:left;
             margin-bottom: .2em;

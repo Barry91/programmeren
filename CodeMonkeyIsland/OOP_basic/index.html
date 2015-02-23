@@ -11,6 +11,7 @@
 
     <body>
        <main>
+
             <h1>Code Monkey Island</h1>
 
             <section class="board">
@@ -40,14 +41,17 @@
                 </section>
 
                 <section class="rules">
-                    <h1>Regels:</h1>
+                    <h1>Instellingen/Spelregels:</h1>
                     <dl>
+                        <a class="save-settings" href="#">Instellingen opslaan</a>
+                        <dt>Aantal velden</dt>
+                        <dd><input type="number" id="total-fields" class="total-fields" value="15" min="5" max="15"/> totaal</dd>
                         <dt class="forward">Groen veld</dt>
-                        <dd>= 1 stap vooruit</dd>
+                        <dd><input type="number" class="steps-forward" value="1"/> stap(pen) vooruit</dd>
                         <dt class="back">Rood veld</dt>
-                        <dd>= 2 stappen achteruit</dd>
+                        <dd><input type="number" class="steps-back" value="2"/> stap(pen) achteruit</dd>
                         <dt class="neutral">Neutraal veld</dt>
-                        <dd>= geen invloed</dd>
+                        <dd>geen invloed</dd>                        
                     </dl>
                 </section>
             </aside>
