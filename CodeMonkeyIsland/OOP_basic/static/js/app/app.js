@@ -13,6 +13,9 @@
 		stepsNeutral: 0,
 		stepsForward: 1, 
 		stepsBack: 2,
+		maxForward: 5,
+  		maxBack: 5,
+  		maxQuestions: 2,
 		finishPoint: 1025,
 
 		init: function() {
@@ -37,8 +40,34 @@
 			{
 				//reset game
 				settings.totalFields = totalFields;
-				game.reset();
-			}		
+				game.reset();				
+			}
+
+			//show feedback
+			feedback.show('<p>De instellingen zijn gewijzigd!</p><p>Gooi de dobbelsteen om verder te gaan.</p>');		
+		}
+
+	}
+
+	var feedback = { 
+
+		show: function(message) {
+			//add feedback message
+			setTimeout(function() {				
+				feedback.clear();					
+				setTimeout(function() {
+					var element = $('.message');
+					element.innerHTML = message;
+					element.className = 'message active';	
+				}, 250);		
+			}, 500);
+		},
+
+		clear: function() {
+			//remove feedback message
+  			var element = $('.message');
+  			element.innerHTML = '';
+  			element.className = 'message';  			
 		}
 
 	}
@@ -53,6 +82,8 @@
 		tasks:[],
 		taskDone: false, 
 
+		currentQuestion: null,
+
 		// methods
 		init: function() {		
 			//init utils and settings	
@@ -63,6 +94,7 @@
 		},
 
 		build: function() {
+			feedback.show('<p>Welkom bij Code Monkey Island</p><p>Gooi de dobbelsteen om het spel te starten.</p>');
 			//init board
 			board.init();
 			//create pawns
@@ -104,13 +136,20 @@
   			for (i = 0; i < fields.length; i++) {
            		element = document.createElement('li');
 
-	            if (fields[i] === 'N'){
-	                element.className = 'neutral';
-	            } else if (fields[i] === 'F') {
-	                element.className = 'forward';
-	            } else {
-	            	element.className = 'back';
-	            }
+           		switch (fields[i]) {
+			        case 'N':
+			            element.className = 'neutral';
+			        break;
+			        case 'F':
+		            	element.className = 'forward';
+			        break;
+			        case 'Q':
+			        	element.className = 'question';
+			        break;
+			        default:
+		           		element.className = 'back';
+			        break;
+		        } 
 
             	width = Math.floor((window.innerWidth-30) / fields.length);
             	element.width = width;
@@ -122,28 +161,34 @@
   		},
 
   		getFields: function() {
-  			var fields = [],
-  				number, i;
+  			var fields = [], number, i;
 
+  			//set all fields to neutral first
   			for (i = 0; i < settings.totalFields; i++) {
-	            number = Math.random();
+  				fields[i] = 'N';
+	        }	        
 
-	            if (number < 0.65 ){
-	                fields[i] = 'N';
-	            }
-	            else if ((number < 0.85 )&&(i != settings.totalFields - 1)){
-	                fields[i] = 'F';
-	            }
-	            else if ((number >= 0.85)&&(i<=1)){
-	                fields[i] = 'N';
-	            }
-	            else {
-	                fields[i] = 'B';
-	            }
-	        }
+	        //add task fields on random indexes, max number is controlled by the settings
+	        fields = this.setTaskFields(fields, 'F', settings.maxForward);
+	        fields = this.setTaskFields(fields, 'B', settings.maxBack);
+	        fields = this.setTaskFields(fields, 'Q', settings.maxQuestions);
 
 	        game.tasks = fields; // store field tasks in array
+	        
 	        return fields;
+  		},
+
+  		setTaskFields: function(fields, fieldName, max) {
+  			//get random number of fields limited by max
+  			var i, randomField, randomNum = Math.floor(Math.random() * max) + 1;
+
+  			for (i = 0; i < randomNum; i++) {
+  				randomField = Math.floor(Math.random() * fields.length);
+  				//apply task to random fields
+  				fields[randomField] = fieldName;
+  			}
+
+  			return fields;
   		},
 
   		setFinishPoint: function() {
@@ -167,20 +212,18 @@
   			}, 1000); //1000 miliseconds
   		},
 
-  		clear: function() {
-  			//empty board
-  			var container = $('.fields');
-  			while (container.firstChild) {
-  				container.removeChild(container.firstChild);
-  			}
-  		},
-
   		resetPawns: function() {
   			//teleport pawns to start
   			var i;
   			for (i = 0; i < game.pawns.length; i++) {
   				game.pawns[i].teleport(game.pawns[i].element);
   			}
+  		},
+
+  		clear: function() {
+  			//empty board
+  			var container = $('.fields');
+			clear.elements(container);
   		}
 
   	};
@@ -227,6 +270,9 @@
 	    roll: function(element) {
 	    	//disable dice when rolling
 	    	this.disable();
+
+	    	feedback.show('<p>Speler ' + (game.activePawn + 1) + ' heeft ' + dice.eyes + ' gegooid.</p>');
+
 	        element.classList.remove('rotatein');
 	        element.parentElement.classList.remove('slidein');
 
@@ -271,48 +317,84 @@
 	  		var pawn = game.pawns[game.activePawn].element, // active pawn element (li)
 	  			self = this;
 
+	  		//if the new step fits on the board	
 	  		if(steps + this.currentField < settings.totalFields) {
 	  			pawn.style.left = (steps + this.currentField - 1) * settings.stepSize + 'px'; // move element
 	  			this.currentField = this.currentField + steps; // store current field
-	  		} else {
-	  			pawn.style.left = settings.totalFields * settings.stepSize + 'px';
-	  			
+	  		} else { 
+	  			//move the pawn into the teleporter
+	  			pawn.style.left = settings.totalFields * settings.stepSize + 'px';	  			
+	  			//teleport the pawn to the startpoint
 	  			setTimeout(function() {
-	  				this.currentField = 0;
+					feedback.show('<p>Speler ' + (game.activePawn + 1) + ' heeft de finish behaald.</p><p>Gooi de dobbelsteen om verder te gaan.</p>');   
 	  				self.teleport(pawn);
-	  				//enable dice when animations done
-	  				dice.enable();
+	  				game.taskDone = true;
 	  			}, 1000);
 	  		}	 
 
-	  		setTimeout(function (){
+	  		setTimeout(function () {
+	  			//if task is done
   				if(game.taskDone) {
   					self.setActive();
   					game.taskDone = false;
   					//enable dice when animations done
   					dice.enable();
   				} else {
+  					//do the task that belongs to the field
   					self.doTask(self.currentField);
   				}
 		    }, 1000);
 	  	},
 
 	  	doTask: function(i) {
-	  		var task = game.tasks[i-1]; // get task corresponding to field
 
-	  		if (task === 'N') {
-	            this.setActive();
-	            //enable dice when animations done
-	            dice.enable();
-	        }
-	        else if (task === 'B') {
-	        	game.taskDone = true;
-	            this.move(-settings.stepsBack);
-	        }
-	        else {
-	        	game.taskDone = true;   
-	            this.move(settings.stepsForward);
-	        }
+	  		var pawn = game.pawns[game.activePawn].element;
+
+	  		//if field is not occupied by a pawn
+	  		if(this.isOnSameField() == false) {
+		  		var task = game.tasks[i - 1]; // get task corresponding to field	 
+
+			  	switch (task) {
+			  		//case neutral field
+			        case 'N':
+			            this.setActive();		            
+				        dice.enable();
+			        break;
+			        //case steps back field
+			        case 'B':
+		            	feedback.show('<p>Speler ' + (game.activePawn + 1) + ' is op een rood veld terecht gekomen en gaat ' + settings.stepsBack + ' stap(pen) terug.</p><p>Gooi de dobbelsteen om verder te gaan.</p>');
+			            game.taskDone = true;
+		            	this.move(-settings.stepsBack);
+			        break;
+			        //case question field
+			        case 'Q':
+			        	game.currentQuestion = new Question();
+			        	game.currentQuestion.init();
+			        break;
+			        //case steps forward field
+			        default:
+		           		feedback.show('<p>Speler ' + (game.activePawn + 1) + ' is op een groen veld terecht gekomen en gaat ' + settings.stepsForward + ' stap(pen) vooruit.</p><p>Gooi de dobbelsteen om verder te gaan.</p>');
+			           	game.taskDone = true;   
+		           		this.move(settings.stepsForward);
+			        break;
+		        } 		
+	    	} 
+	    	else {	    		
+	    		feedback.show('<p>Speler ' + (game.activePawn + 1) + ' is op een bezet veld terecht gekomen en keert terug naar het begin.</p><p>Gooi de dobbelsteen om verder te gaan.</p>');    		
+	    		this.teleport(pawn);
+	    		this.setActive();	    		
+	    	}
+	  	},
+
+	  	isOnSameField: function() {
+	  		var i;
+  			for (i = 0; i < game.pawns.length; i++) {
+  				//check if pawns are on the same field
+  				if (game.pawns[i] != game.pawns[game.activePawn] && game.pawns[i].currentField == this.currentField) {  				
+  					return true;
+  				}
+  			}
+  			return false
 	  	},
 
 	  	setActive: function() {
@@ -322,11 +404,138 @@
 	  	teleport: function(element) {
 	  		//only teleport if player is on a step
 	  		if (this.currentField != 0) {
-	  			console.log('teleporter seriously out of order!');
 	  			element.style.left = -settings.stepSize + 'px';
+	  			this.currentField = 0;
+	  			dice.enable();
 	  		}
 	  	}
   	};
+
+  	function Question() {
+  		//Question constructor
+  		this.question = null;
+  		self = this;
+  	}
+
+  	Question.prototype = {
+
+  		init: function() {
+  			this.get();
+  		},
+
+  		get: function() {
+  			//get random question from data.js
+  			var randomNum = Math.floor(Math.random() * questions.length);
+  			this.question = questions[randomNum];
+  			this.set();
+	  	},
+
+	  	set: function() {
+
+	  		//set question elements
+	  		var i, li, radio, text;
+	  		var question = this.question.question;
+	  		var options = this.question.options;
+	  		
+	  		//create question text
+	  		var questionEl = $('.question-text');	
+	  		text = document.createTextNode(question);
+	  		questionEl.appendChild(text);
+
+	  		//create question options
+	  		var optionsEl = $('.options');	
+	  		for (i = 0; i < options.length; i++) {
+
+	  			li = document.createElement('li');
+	  			text = document.createTextNode(options[i]);
+	  			radio = document.createElement('input');
+			    radio.type = 'radio';
+			    radio.name = 'options';
+			    radio.value = i + 1;
+
+			    //append all nodes
+			    li.appendChild(radio);
+			    li.appendChild(text);
+	  			optionsEl.appendChild(li);
+	  		}
+
+	  		this.show();
+	  	},
+		
+		enable: function() {		
+			//enable answering 
+			var element = $('.check-answer');		
+			element.addEventListener('click', this.checkAnswer);
+		},	  	
+
+		disable: function() {
+			//disable answering 	
+			var element = $('.check-answer');		
+			element.removeEventListener('click', this.checkAnswer);
+		},
+
+  		show: function() {
+  			//show question container
+  			var element = $('.quiz');	
+  			element.className = 'quiz active';	
+
+  			this.enable();
+  		},
+
+  		hide: function() {
+  			//hide question container
+  			var element = $('.quiz');	
+  			element.className = 'quiz';	
+
+  			this.clear();
+  			this.disable();
+  		},
+
+  		clear: function() {
+  			//clear question from container
+  			var options = $('.options');
+  			var question = $('.question-text');
+
+  			clear.elements(options);
+  			clear.elements(question);
+  		},
+
+  		checkAnswer: function() {
+  			//check if answer is correct
+  			var selected = document.getElementsByName('options');
+			var selected_value;
+
+			//get selected value
+			for(var i = 0; i < selected.length; i++){
+			    if(selected[i].checked){
+			        selected_value = selected[i].value;
+			    }
+			}
+
+			//if answer is correct
+			if(selected_value == self.question.answer) {
+				//move pawn to finish
+				var steps = settings.totalFields - game.pawns[game.activePawn].currentField; 
+				game.pawns[game.activePawn].move(steps);
+				feedback.show('<p>Het antwoord is correct!</br>Speler ' + (game.activePawn + 1) + ' gaat direct door naar de finish.</p><p>Gooi de dobbelsteen om verder te gaan.</p>');   
+			} else { 
+				dice.enable();
+				feedback.show('<p>Het antwoord is helaas fout.</p><p>Gooi de dobbelsteen om verder te gaan.</p>'); 
+			}
+
+			self.hide();
+  		}
+
+  	};
+
+  	var clear = {
+  		//clear all elements in a element
+  		elements: function(element) {
+  			while (element.firstChild) {
+  				element.removeChild(element.firstChild);
+  			}
+  		}
+  	}
   	
   	// utils object literal
 	var utils = {

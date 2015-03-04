@@ -85,7 +85,7 @@ aside .dice img {
     user-select: none;
     width:160px;  
 }
-    aside p,
+    aside div,
     aside dl {
         display: inline-block;
         border: none;
@@ -99,9 +99,16 @@ aside .dice img {
         text-align: left
     }
 
-    aside .feedback p {
+    aside .feedback .message {
         width: 300px;
         vertical-align: top;
+        text-align: left;
+        text-indent: -300px;        
+        transition: text-indent 0.25s ease-in-out;
+    }
+
+    aside .feedback .message.active {
+        text-indent: 0px;
     }
 
     aside .rules dl {
@@ -195,7 +202,11 @@ aside .dice img {
         }
 
         .neutral {
-           background: #FF953D; 
+            background: #FF953D; 
+        }
+
+        .question {
+            background: #f5bd15;
         }
 
     .teleporter {
@@ -211,6 +222,38 @@ aside .dice img {
         -o-transform: scaleX(-1);
         -webkit-transform: scaleX(-1);
         transform: scaleX(-1);
+    }
+
+/* Quiz */
+.quiz {
+    position: absolute;
+    top: 35%;
+    left: 35%;
+    color: #333;
+    display: none;
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5em;
+    width: 30%;
+    z-index: 2;
+}    
+.quiz.active {
+    display: block;
+}
+    .options {
+        display: block;
+        margin: 0 auto;
+        padding: 0;
+    }
+    .check-answer {
+        display: block;
+        width: 60%;
+        margin: 2em auto 0 auto;
+        background: #da3c3f;
+        color: #fff;
+        border-radius: 3px;
+        padding: 10px;
+        text-decoration: none;
     }
 
 /* Animations */
