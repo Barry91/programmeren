@@ -13,10 +13,8 @@
 		stepsNeutral: 0,
 		stepsForward: 1, 
 		stepsBack: 2,
-		maxForward: 5,
-  		maxBack: 5,
-  		maxQuestions: 2,
 		finishPoint: 1025,
+		taskFields: { 'F' : 5, 'Q' : 2, 'B' : 5 },
 
 		init: function() {
 			//enable click event
@@ -36,8 +34,7 @@
 			settings.stepsBack = parseInt($('.steps-back').value);		
 
 			//if total field setting changed
-			if(totalFields != settings.totalFields)
-			{
+			if(totalFields != settings.totalFields) {
 				//reset game
 				settings.totalFields = totalFields;
 				game.reset();				
@@ -146,8 +143,11 @@
 			        case 'Q':
 			        	element.className = 'question';
 			        break;
+			        case 'B':
+			        	element.className = 'back';
+			        break;
 			        default:
-		           		element.className = 'back';
+		           		element.className = 'neutral';
 			        break;
 		        } 
 
@@ -161,31 +161,37 @@
   		},
 
   		getFields: function() {
-  			var fields = [], number, i;
+  			var fields = [], number, i, task;
 
   			//set all fields to neutral first
   			for (i = 0; i < settings.totalFields; i++) {
   				fields[i] = 'N';
-	        }	        
+	        }
 
 	        //add task fields on random indexes, max number is controlled by the settings
-	        fields = this.setTaskFields(fields, 'F', settings.maxForward);
-	        fields = this.setTaskFields(fields, 'B', settings.maxBack);
-	        fields = this.setTaskFields(fields, 'Q', settings.maxQuestions);
+	        for (task in settings.taskFields) {
+	        	fields = this.setTaskFields(fields, task, settings.taskFields[task]);
+	        }
 
 	        game.tasks = fields; // store field tasks in array
 	        
 	        return fields;
   		},
 
-  		setTaskFields: function(fields, fieldName, max) {
+  		setTaskFields: function(fields, fieldTask, max) {
   			//get random number of fields limited by max
   			var i, randomField, randomNum = Math.floor(Math.random() * max) + 1;
 
   			for (i = 0; i < randomNum; i++) {
   				randomField = Math.floor(Math.random() * fields.length);
+
   				//apply task to random fields
-  				fields[randomField] = fieldName;
+  				if(fields[randomField] == 'N') {  					
+  					fields[randomField] = fieldTask;
+  				}
+  				else {
+  					i--;
+  				}
   			}
 
   			return fields;
@@ -290,8 +296,10 @@
 
   		enable: function() {
   			//add click event listener
-			var element = $('.dice');			
-			element.addEventListener('click', clickEvent);
+  			setTimeout(function () {
+				var element = $('.dice');			
+				element.addEventListener('click', clickEvent);
+			}, 500);
 		},
 
 		disable: function() {
@@ -319,8 +327,14 @@
 
 	  		//if the new step fits on the board	
 	  		if(steps + this.currentField < settings.totalFields) {
-	  			pawn.style.left = (steps + this.currentField - 1) * settings.stepSize + 'px'; // move element
-	  			this.currentField = this.currentField + steps; // store current field
+	  			//if new step is below 1 move to start
+	  			if(steps + this.currentField < 1) {
+	  				pawn.style.left = -settings.stepSize + 'px'; // move element
+	  				this.currentField = 0; // store current field
+	  			} else {
+		  			pawn.style.left = (steps + this.currentField - 1) * settings.stepSize + 'px'; // move element
+		  			this.currentField = this.currentField + steps; 		  			
+	  			}	  			
 	  		} else { 
 	  			//move the pawn into the teleporter
 	  			pawn.style.left = settings.totalFields * settings.stepSize + 'px';	  			
@@ -463,7 +477,7 @@
 	  	},
 		
 		enable: function() {		
-			//enable answering 
+			//enable answering
 			var element = $('.check-answer');		
 			element.addEventListener('click', this.checkAnswer);
 		},	  	

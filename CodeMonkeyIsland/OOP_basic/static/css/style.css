@@ -103,8 +103,9 @@ aside .dice img {
         width: 300px;
         vertical-align: top;
         text-align: left;
-        text-indent: -300px;        
-        transition: text-indent 0.25s ease-in-out;
+        text-indent: -300px;   
+        overflow: hidden;    
+        transition: text-indent 0.25s ease;
     }
 
     aside .feedback .message.active {
