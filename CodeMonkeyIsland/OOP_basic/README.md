@@ -88,6 +88,8 @@ Options 2: Copy the contents of the OOP_basic folder to your webserver using a F
 	- functions/rules
 	- realization/changelog 
 
+Total hours: 29,5	
+
 ## Changelog
 
 By 05-03-2014
