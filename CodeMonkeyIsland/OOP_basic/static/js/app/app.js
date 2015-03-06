@@ -14,11 +14,11 @@
 		stepsForward: 1, 
 		stepsBack: 2,
 		finishPoint: 1025,
-		taskFields: { 'F' : 5, 'Q' : 2, 'B' : 5 },
+		taskFields: { 'N' : 40, 'F' : 25, 'Q' : 10, 'B' : 25 },	//task ratio
 
 		init: function() {
 			//enable click event
-			this.enable();
+			this.enable();			
 		},
 
 		enable: function() {
@@ -29,8 +29,9 @@
 
 		save: function() {
 			//set settings with input values
-			var totalFields = parseInt($('.total-fields').value);
-			settings.stepsForward = parseInt($('.steps-forward').value);
+			var val = parseInt($('.total-fields').value);
+			var totalFields = (val >= 5 && val <= 15) ? val : 15;
+			settings.stepsForward = (parseInt($('.steps-forward').value));
 			settings.stepsBack = parseInt($('.steps-back').value);		
 
 			//if total field setting changed
@@ -43,7 +44,6 @@
 			//show feedback
 			feedback.show('<p>De instellingen zijn gewijzigd!</p><p>Gooi de dobbelsteen om verder te gaan.</p>');		
 		}
-
 	}
 
 	var feedback = { 
@@ -161,16 +161,19 @@
   		},
 
   		getFields: function() {
-  			var fields = [], number, i, task;
+  			var fields = [], i, task, max;
 
   			//set all fields to neutral first
   			for (i = 0; i < settings.totalFields; i++) {
   				fields[i] = 'N';
 	        }
 
-	        //add task fields on random indexes, max number is controlled by the settings
+	        //add task fields on random indexes, max number is controlled by the ratio setting
 	        for (task in settings.taskFields) {
-	        	fields = this.setTaskFields(fields, task, settings.taskFields[task]);
+	        	if(task != 'N') {
+	        		max = (settings.taskFields[task] / 100) * settings.totalFields;
+	        		fields = this.setTaskFields(fields, task, max);
+	        	}
 	        }
 
 	        game.tasks = fields; // store field tasks in array
@@ -188,8 +191,7 @@
   				//apply task to random fields
   				if(fields[randomField] == 'N') {  					
   					fields[randomField] = fieldTask;
-  				}
-  				else {
+  				} else {
   					i--;
   				}
   			}
